@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>URL Status Checker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2em; background: #f5f5f7; }
+    .container { background: white; padding: 2em; border-radius: 8px; box-shadow: 0 0 6px #ccc; max-width: 420px; margin: auto;}
+    label { font-weight: bold; }
+    input[type="url"] { width: 100%; padding: 0.4em; margin: 0.8em 0; }
+    button { padding: 0.5em 1em; font-size: 1em;}
+    .status { margin-top: 1em; font-size: 1.15em; }
+    .ok { color: green; }
+    .fail { color: red; }
+    .warn { color: #c77733; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>URL Status Checker</h2>
+    <form id="urlForm">
+      <label for="targetUrl">Enter a URL to check its status:</label>
+      <input type="url" id="targetUrl" name="targetUrl" placeholder="https://api.github.com" required>
+      <button type="submit">Check Status</button>
+    </form>
+    <div id="statusMsg" class="status"></div>
+    <div class="warn" id="corsWarn" style="display: none;">
+      <strong>⚠️ Note:</strong> Some websites may block checks due to browser CORS restrictions.
+    </div>
+  </div>
+  <script>
+    document.getElementById('urlForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const urlInput = document.getElementById('targetUrl');
+      const statusMsg = document.getElementById('statusMsg');
+      const corsWarn = document.getElementById('corsWarn');
+      const url = urlInput.value.trim();
+
+      statusMsg.innerText = '';
+      corsWarn.style.display = 'none';
+
+      if (!/^https?:\/\//.test(url)) {
+        statusMsg.innerHTML = '<span class="fail">Please enter a valid URL starting with http:// or https://</span>';
+        return;
+      }
+
+      statusMsg.innerHTML = 'Checking status...';
+
+      try {
+        let response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+          statusMsg.innerHTML = `<span class="ok">✅ URL is UP! [${response.status}]</span>`;
+        } else {
+          statusMsg.innerHTML = `<span class="fail">❌ URL responded with status: ${response.status}</span>`;
+        }
+      } catch (error) {
+        statusMsg.innerHTML = `<span class="fail">❌ Failed to reach URL.<br>Error: ${error}</span>`;
+        corsWarn.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
